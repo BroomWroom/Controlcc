@@ -464,7 +464,7 @@ export default function DashboardGrid() {
           © 2026 <strong>CodeChef VIT</strong>. All rights reserved.
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <span>Developer: <strong>Tanishq Walture</strong></span>
+          <span>Developer: <strong>Tanish Walture</strong></span>
           <span style={{ color: 'var(--card-border)' }}>|</span>
           <a href="https://github.com/BroomWroom" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-blue)', textDecoration: 'none', fontWeight: 600 }}>GitHub</a>
           <span style={{ color: 'var(--card-border)' }}>|</span>
