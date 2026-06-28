@@ -11,13 +11,26 @@ interface RejudgeModalProps {
 }
 
 export default function RejudgeModal({ submission, onClose }: RejudgeModalProps) {
-  const { rejudgeSubmission } = useContestStore();
+  const { 
+    rejudgeSubmission,
+    isAdminAuthenticated,
+    setAdminAuthModalOpen,
+    setPendingAdminAction
+  } = useContestStore();
   const [newVerdict, setNewVerdict] = useState<Submission['verdict']>(submission.verdict);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    rejudgeSubmission(submission.id, newVerdict);
-    onClose();
+    if (isAdminAuthenticated) {
+      rejudgeSubmission(submission.id, newVerdict);
+      onClose();
+    } else {
+      setPendingAdminAction(() => {
+        rejudgeSubmission(submission.id, newVerdict);
+      });
+      setAdminAuthModalOpen(true);
+      onClose();
+    }
   };
 
   const verdicts: Submission['verdict'][] = [

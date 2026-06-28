@@ -16,13 +16,25 @@ export default function CountdownDial() {
     toggleFreezeMode, 
     resetContest,
     setContestStatus,
-    setContestTime
+    setContestTime,
+    isAdminAuthenticated,
+    setAdminAuthModalOpen,
+    setPendingAdminAction
   } = useContestStore();
 
   const [isCoverOpen, setIsCoverOpen] = useState(false);
   const [isThemeLight, setIsThemeLight] = useState(false);
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [inputMinutes, setInputMinutes] = useState(90);
+
+  const handleResetClick = () => {
+    if (isAdminAuthenticated) {
+      resetContest();
+    } else {
+      setPendingAdminAction(() => resetContest);
+      setAdminAuthModalOpen(true);
+    }
+  };
 
 
 
@@ -95,7 +107,7 @@ export default function CountdownDial() {
 
       {/* Main Control Card */}
       <BorderGlow animated={true}>
-        <header style={{ padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', width: '100%', background: 'transparent' }}>
+        <header className="control-center-header">
           {/* Left: Operational Title */}
           <div>
             <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -120,7 +132,7 @@ export default function CountdownDial() {
           </div>
 
       {/* Center Console: Timer */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+      <div className="control-center-timer-wrapper">
         <div style={{ textAlign: 'center' }}>
           <div className="mono-font" style={{ 
             fontSize: '2rem', 
@@ -255,7 +267,7 @@ export default function CountdownDial() {
           
           <button 
             className="btn" 
-            onClick={resetContest} 
+            onClick={handleResetClick} 
             title="Reset Simulation Data"
             style={{ padding: '0.4rem', color: 'var(--accent-red)' }}
           >
@@ -265,7 +277,7 @@ export default function CountdownDial() {
       </div>
 
       {/* Signature Element: Mechanical Freeze Standings Switch */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div className="control-center-switches">
         {/* Toggle Theme */}
         <button className="btn" onClick={toggleTheme} style={{ padding: '0.5rem', borderRadius: '50%' }}>
           {isThemeLight ? <Moon size={16} /> : <Sun size={16} />}

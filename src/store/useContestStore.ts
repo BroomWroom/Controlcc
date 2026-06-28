@@ -45,6 +45,10 @@ interface ContestState {
   plagiarismFlags: PlagiarismFlag[];
   latestFirstBlood: { participantName: string; problemCode: string } | null;
   
+  isAdminAuthenticated: boolean;
+  adminAuthModalOpen: boolean;
+  pendingAdminAction: (() => void) | null;
+
   addSubmission: (submission: Omit<Submission, 'id'> & { id?: string }) => string;
   resolveSubmission: (id: string, verdict: Submission['verdict'], executionTime: number) => void;
   rejudgeSubmission: (id: string, newVerdict: Submission['verdict']) => void;
@@ -64,6 +68,10 @@ interface ContestState {
   clearLatestFirstBlood: () => void;
   disqualifyParticipant: (name: string) => void;
   clearParticipantStatus: (name: string) => void;
+
+  setAdminAuthenticated: (auth: boolean) => void;
+  setAdminAuthModalOpen: (open: boolean) => void;
+  setPendingAdminAction: (action: (() => void) | null) => void;
 }
 
 export const calculateStandings = (
@@ -75,33 +83,28 @@ export const calculateStandings = (
     const pSubmissions = submissions.filter((s) => s.participantName === p.name);
     const solvedProblems: string[] = [];
     const problemAttempts: Participant['problemAttempts'] = {};
-    let totalPenalty = 0;
+    let solvedCount = 0;
+    let penaltyTime = 0;
 
     problems.forEach((prob) => {
       const probSubs = pSubmissions.filter((s) => s.problemCode === prob.code);
-      const sortedSubs = [...probSubs].sort((a, b) => a.timestamp - b.timestamp);
-      const firstAcIdx = sortedSubs.findIndex((s) => s.verdict === 'Accepted');
+      
+      const firstAC = probSubs.find((s) => s.verdict === 'Accepted');
+      const attemptsBeforeAC = firstAC 
+        ? probSubs.filter((s) => s.timestamp < firstAC.timestamp && s.verdict !== 'Pending' && s.verdict !== 'Running').length
+        : probSubs.filter((s) => s.verdict !== 'Pending' && s.verdict !== 'Running').length;
 
-      if (firstAcIdx !== -1) {
-        const solvedTime = sortedSubs[firstAcIdx].timestamp;
-        const failedBeforeAc = sortedSubs
-          .slice(0, firstAcIdx)
-          .filter((s) => ['Wrong Answer', 'Time Limit Exceeded', 'Runtime Error'].includes(s.verdict))
-          .length;
-
+      if (firstAC) {
+        solvedCount++;
         solvedProblems.push(prob.code);
         problemAttempts[prob.code] = {
-          attempts: failedBeforeAc + 1,
-          solvedTime,
+          attempts: attemptsBeforeAC + 1,
+          solvedTime: firstAC.timestamp,
         };
-        totalPenalty += solvedTime + failedBeforeAc * 20;
+        penaltyTime += firstAC.timestamp + attemptsBeforeAC * 20;
       } else {
-        const failedAttempts = probSubs.filter((s) => 
-          ['Wrong Answer', 'Time Limit Exceeded', 'Runtime Error'].includes(s.verdict)
-        ).length;
-
         problemAttempts[prob.code] = {
-          attempts: failedAttempts,
+          attempts: attemptsBeforeAC,
           solvedTime: null,
         };
       }
@@ -111,20 +114,16 @@ export const calculateStandings = (
       ...p,
       solvedProblems,
       problemAttempts,
-      solvedCount: solvedProblems.length,
-      penaltyTime: totalPenalty,
+      solvedCount,
+      penaltyTime,
     };
   });
 
   const sorted = [...updatedParticipants].sort((a, b) => {
-    // Disqualified participants are ranked at the absolute bottom
     if (a.status === 'Disqualified' && b.status !== 'Disqualified') return 1;
     if (b.status === 'Disqualified' && a.status !== 'Disqualified') return -1;
-    if (a.status === 'Disqualified' && b.status === 'Disqualified') {
-      return a.name.localeCompare(b.name);
-    }
-
-    if (b.solvedCount !== a.solvedCount) {
+    
+    if (a.solvedCount !== b.solvedCount) {
       return b.solvedCount - a.solvedCount;
     }
     if (a.penaltyTime !== b.penaltyTime) {
@@ -139,15 +138,12 @@ export const calculateStandings = (
       sorted[i].rank = -1;
       continue;
     }
-    
-    if (i > 0) {
-      const prev = sorted[i - 1];
-      const curr = sorted[i];
-      if (prev.status !== 'Disqualified' && (curr.solvedCount !== prev.solvedCount || curr.penaltyTime !== prev.penaltyTime)) {
-        currentRank = i + 1;
-      }
+    if (i > 0 && sorted[i].solvedCount === sorted[i - 1].solvedCount && sorted[i].penaltyTime === sorted[i - 1].penaltyTime) {
+      sorted[i].rank = sorted[i - 1].rank;
+    } else {
+      sorted[i].rank = currentRank;
     }
-    sorted[i].rank = currentRank;
+    currentRank++;
   }
 
   return sorted;
@@ -180,17 +176,6 @@ const validateSavedState = (parsed: any): boolean => {
   return true;
 };
 
-const verifyAdminAction = (): boolean => {
-  if (typeof window !== 'undefined') {
-    const code = window.prompt('Enter Administrative Security Passcode:');
-    if (code !== 'vitadmin123') {
-      window.alert('Unauthorized administrative action.');
-      return false;
-    }
-  }
-  return true;
-};
-
 const getInitialState = () => {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('contest_control_center_state');
@@ -216,6 +201,10 @@ const getInitialState = () => {
             latestFirstBlood: null,
             plagiarismFlags: parsed.plagiarismFlags || [],
             totalContestMinutes: parsed.totalContestMinutes || Math.round((parsed.timeRemaining || 5400) / 60) || 90,
+            
+            isAdminAuthenticated: false,
+            adminAuthModalOpen: false,
+            pendingAdminAction: null,
           };
         } else {
           console.warn('Saved state failed validation. Discarding corrupted cache.');
@@ -241,6 +230,10 @@ const getInitialState = () => {
     rewindMinute: null,
     plagiarismFlags: [],
     latestFirstBlood: null,
+    
+    isAdminAuthenticated: false,
+    adminAuthModalOpen: false,
+    pendingAdminAction: null,
   };
 };
 
@@ -419,8 +412,8 @@ export const useContestStore = create<ContestState>((set) => {
     },
 
     rejudgeSubmission: (id, newVerdict) => {
-      if (!verifyAdminAction()) return;
       set((state) => {
+        if (!state.isAdminAuthenticated) return {};
         const subIndex = state.submissions.findIndex((s) => s.id === id);
         if (subIndex === -1) return {};
 
@@ -591,25 +584,27 @@ export const useContestStore = create<ContestState>((set) => {
     },
 
     resetContest: () => {
-      if (!verifyAdminAction()) return;
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('contest_control_center_state');
-      }
-      set({
-        participants: calculateStandings(INITIAL_PARTICIPANTS, INITIAL_SUBMISSIONS, PROBLEMS),
-        submissions: INITIAL_SUBMISSIONS,
-        activities: INITIAL_ACTIVITIES,
-        problems: PROBLEMS,
-        freezeMode: false,
-        frozenLeaderboard: null,
-        contestStatus: 'Live',
-        timeRemaining: 5400,
-        totalContestMinutes: 90,
-        rejudgeHistory: [],
-        sandboxSimulation: null,
-        rewindMinute: null,
-        plagiarismFlags: [],
-        latestFirstBlood: null,
+      set((state) => {
+        if (!state.isAdminAuthenticated) return {};
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('contest_control_center_state');
+        }
+        return {
+          participants: calculateStandings(INITIAL_PARTICIPANTS, INITIAL_SUBMISSIONS, PROBLEMS),
+          submissions: INITIAL_SUBMISSIONS,
+          activities: INITIAL_ACTIVITIES,
+          problems: PROBLEMS,
+          freezeMode: false,
+          frozenLeaderboard: null,
+          contestStatus: 'Live',
+          timeRemaining: 5400,
+          totalContestMinutes: 90,
+          rejudgeHistory: [],
+          sandboxSimulation: null,
+          rewindMinute: null,
+          plagiarismFlags: [],
+          latestFirstBlood: null,
+        };
       });
     },
 
@@ -685,8 +680,8 @@ export const useContestStore = create<ContestState>((set) => {
     },
 
     resolvePlagiarismFlag: (id, status) => {
-      if (!verifyAdminAction()) return;
       set((state) => {
+        if (!state.isAdminAuthenticated) return {};
         const updatedFlags = state.plagiarismFlags.map((f) => 
           f.id === id ? { ...f, status } : f
         );
@@ -750,8 +745,8 @@ export const useContestStore = create<ContestState>((set) => {
     },
 
     disqualifyParticipant: (name) => {
-      if (!verifyAdminAction()) return;
       set((state) => {
+        if (!state.isAdminAuthenticated) return {};
         const participants = state.participants.map((p) => 
           p.name === name ? { ...p, status: 'Disqualified' as const } : p
         );
@@ -776,8 +771,8 @@ export const useContestStore = create<ContestState>((set) => {
     },
 
     clearParticipantStatus: (name) => {
-      if (!verifyAdminAction()) return;
       set((state) => {
+        if (!state.isAdminAuthenticated) return {};
         const participants = state.participants.map((p) => 
           p.name === name ? { ...p, status: 'Active' as const } : p
         );
@@ -800,5 +795,9 @@ export const useContestStore = create<ContestState>((set) => {
         return updatedState;
       });
     },
+
+    setAdminAuthenticated: (auth) => set({ isAdminAuthenticated: auth }),
+    setAdminAuthModalOpen: (open) => set({ adminAuthModalOpen: open }),
+    setPendingAdminAction: (action) => set(() => ({ pendingAdminAction: action })),
   };
 });

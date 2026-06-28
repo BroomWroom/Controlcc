@@ -10,6 +10,7 @@ import ParticipantTable from './ParticipantTable';
 import Submissions from './Submissions';
 import AnalyticsPanel from './AnalyticsPanel';
 import SecurityPanel from './SecurityPanel';
+import AdminAuthModal from './AdminAuthModal';
 import { useContestStore } from '../store/useContestStore';
 import { Reorder, useDragControls, AnimatePresence, motion } from 'framer-motion';
 import { GripVertical, Play, Pause, RefreshCw, AlertTriangle, Sparkles } from 'lucide-react';
@@ -368,13 +369,7 @@ export default function DashboardGrid() {
         )}
 
         {/* Timeline Control Row */}
-        <div style={{
-          padding: '0.75rem 1.25rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          flexWrap: 'wrap'
-        }}>
+        <div className="timeline-control-row">
           {/* Play/Pause Button */}
           <button
             onClick={handlePlayPause}
@@ -481,6 +476,9 @@ export default function DashboardGrid() {
           animation: spin-slow 8s linear infinite;
         }
       `}</style>
+
+      {/* Global Security Prompt Gate Modal */}
+      <AdminAuthModal />
     </div>
   );
 }

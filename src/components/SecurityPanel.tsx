@@ -6,7 +6,22 @@ import { ShieldAlert, ShieldCheck, Eye, Check, AlertTriangle, ShieldX } from 'lu
 import BorderGlow from './BorderGlow';
 
 export default function SecurityPanel() {
-  const { plagiarismFlags, resolvePlagiarismFlag } = useContestStore();
+  const { 
+    plagiarismFlags, 
+    resolvePlagiarismFlag,
+    isAdminAuthenticated,
+    setAdminAuthModalOpen,
+    setPendingAdminAction
+  } = useContestStore();
+
+  const handleResolvePlagiarism = (id: string, status: PlagiarismFlag['status']) => {
+    if (isAdminAuthenticated) {
+      resolvePlagiarismFlag(id, status);
+    } else {
+      setPendingAdminAction(() => resolvePlagiarismFlag(id, status));
+      setAdminAuthModalOpen(true);
+    }
+  };
 
   const getStatusBadge = (status: PlagiarismFlag['status']) => {
     switch (status) {
@@ -125,7 +140,7 @@ export default function SecurityPanel() {
                     {isPending && (
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
-                          onClick={() => resolvePlagiarismFlag(flag.id, 'Investigated')}
+                          onClick={() => handleResolvePlagiarism(flag.id, 'Investigated')}
                           className="btn"
                           style={{
                             display: 'flex',
@@ -143,7 +158,7 @@ export default function SecurityPanel() {
                           Disqualify
                         </button>
                         <button
-                          onClick={() => resolvePlagiarismFlag(flag.id, 'Cleared')}
+                          onClick={() => handleResolvePlagiarism(flag.id, 'Cleared')}
                           className="btn"
                           style={{
                             display: 'flex',

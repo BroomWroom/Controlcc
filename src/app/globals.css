@@ -348,3 +348,99 @@ li:hover .drag-handle-grip {
 nextjs-portal {
   display: none !important;
 }
+
+/* Responsive adjustments for mobile and tablets */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    padding: 0.75rem !important;
+    gap: 1rem !important;
+  }
+  
+  .card {
+    padding: 0.75rem !important;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.5rem 0.65rem !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .btn {
+    padding: 0.35rem 0.65rem !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* Control Dial Header responsiveness */
+.control-center-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+  background: transparent;
+  padding: 1rem 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .control-center-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem 0.75rem;
+  }
+}
+
+.control-center-timer-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .control-center-timer-wrapper {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  .control-center-timer-wrapper > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.control-center-switches {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .control-center-switches {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Timeline Rewind Responsive Panel */
+.timeline-control-row {
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  .timeline-control-row {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  .timeline-control-row > * {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}
