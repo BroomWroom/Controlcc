@@ -4,47 +4,51 @@ Hey there! This is the repository for the **CodeChef Contest Control Center**, a
 
 ---
 
-## 🔗 Quick Links
-
 * **Control Center**: https://controlcc.vercel.app/
 ---
 
 ## 📸 Screenshots
 
 ### 1. Operations Control Deck Overview
-*(Placeholder for full dashboard layout screenshot showing dark/light mode toggle, Control Center header, and active widgets)*
-![Dashboard Overview](https://placehold.co/1200x600/10141e/ffffff?text=Dashboard+Overview+Screenshot)
+* Dark Mode :
+<img width="1918" height="967" alt="Screenshot 2026-06-28 163746" src="https://github.com/user-attachments/assets/313d4ff0-b3e6-4b71-a304-7a7182dcc7ae" />
+
+* Light Mode :
+<img width="1918" height="962" alt="Screenshot 2026-06-28 164836" src="https://github.com/user-attachments/assets/98df5934-223f-4aca-8df7-04033d486d19" />
+
 
 ### 2. Standings Frozen Mode
-*(Placeholder showing the Leaderboard with the translucent mechanical frosted glass lock overlay and frozen standings indicator)*
-![Standings Frozen Mode](https://placehold.co/1200x600/10141e/ffffff?text=Standings+Frozen+Mode+Screenshot)
+<img width="1282" height="937" alt="Screenshot 2026-06-28 163940" src="https://github.com/user-attachments/assets/b92805a2-7b8d-4393-8fae-3b72311c0679" />
 
 ### 3. Timeline Rewind & Autoplay Controls
-*(Placeholder showing the bottom sticky Contest Rewind dock at Minute X, along with the warning banner and play/pause slider)*
-![Timeline Rewind](https://placehold.co/1200x600/10141e/ffffff?text=Timeline+Rewind+Dock+Screenshot)
+
+
+https://github.com/user-attachments/assets/42d58d1d-7cae-4a4e-bcf9-99ff3d5a574d
+
+
 
 ### 4. Plagiarism Detection & Security Scanner
-*(Placeholder showing the Security Scanner widget flagging duplicate codes with options to Disqualify or Clear)*
-![Security Scanner](https://placehold.co/1200x600/10141e/ffffff?text=Security+Scanner+Screenshot)
+<img width="1896" height="476" alt="Screenshot 2026-06-28 164124" src="https://github.com/user-attachments/assets/98eb7a14-0e22-4cdb-8192-20dc0313aecf" />
+
 
 ### 5. Contest Analytics & Graphs
-*(Placeholder showing the analytics panel charts: Pie chart of verdict distribution, stacked bar chart of solves/fails, timeline activity line chart, and horizontal language combat race)*
-![Analytics Panel](https://placehold.co/1200x600/10141e/ffffff?text=Analytics+Charts+Screenshot)
+<img width="1918" height="438" alt="Screenshot 2026-06-28 164143" src="https://github.com/user-attachments/assets/199b4116-37fb-4eff-bb0c-7338b0467822" />
+
 
 ### 6. Participant Registry & Filter Management
-*(Placeholder showing the participant table with university filters, search bar, slider for maximum rank limit, and min solved count filter)*
-![Participant Registry](https://placehold.co/1200x600/10141e/ffffff?text=Participant+Registry+Screenshot)
+<img width="1918" height="882" alt="Screenshot 2026-06-28 164117" src="https://github.com/user-attachments/assets/5ac0585c-a5f5-429d-8be4-1e573c80f01f" />
+
 
 ### 7. Live Submission Stream
-*(Placeholder showing the real-time submission list filtering by verdict and problem with quick action buttons for manual rejudging)*
-![Live Submission Stream](https://placehold.co/1200x600/10141e/ffffff?text=Submission+Stream+Screenshot)
+<img width="1918" height="742" alt="Screenshot 2026-06-28 164132" src="https://github.com/user-attachments/assets/83c396d0-500d-4b78-9f65-734d4714b7eb" />
+
 
 ---
 
 ## 🛠️ The Tech Stack
 
-We kept things modular and performant:
-* **Next.js 16 (App Router)**: Our core framework for page routing and layout structure.
+I kept things modular and performant:
+* **Next.js 16 (App Router)**: My core framework for page routing and layout structure.
 * **Zustand**: Hands down the easiest way to handle shared state. It syncs automatically with `localStorage` so everything stays intact if you refresh.
 * **Framer Motion**: Handles row re-ordering animations on the leaderboard, the safety cover switch, and particle explosions on first-bloods.
 * **Recharts**: Powers the operational charts (submission timelines, language combat graphs, etc.).
@@ -86,18 +90,18 @@ src/
 
 ---
 
-## 🧠 How We Handle State
+## 🧠 How I Handle State
 
-Instead of overcomplicating things with Redux or Prop Drilling, we went with **Zustand**. 
+Instead of overcomplicating things with Redux or Prop Drilling, I went with **Zustand**. 
 
 Everything is driven by a single store (`useContestStore.ts`). Every time a participant submits a solution, or an admin changes a verdict:
 1. The store catches the change.
-2. It triggers our standings engine to recalculate ranks and penalty times.
+2. It triggers the standings engine to recalculate ranks and penalty times.
 3. Ranks are sorted: **Solved Problems** (descending) ➔ **Penalty Time** (ascending) ➔ **Alphabetical** (as a stable tie-breaker).
 4. Disqualified participants are automatically flagged and pushed to the absolute bottom of the rankings.
 
 **Side-Effect Free Features:**
-For things like the **Timeline Rewind** and **Leaderboard Sandbox**, we avoid writing back to the store. Instead, we compute the state on-the-fly inside components (e.g. filtering submissions dynamically by timestamp or injecting a simulated row). This ensures you can play around with simulations and rewinds without corrupting the live-running simulation.
+For things like the **Timeline Rewind** and **Leaderboard Sandbox**, I have avoided writing back to the store. Instead, I computed the state inside components (e.g. filtering submissions dynamically by timestamp or injecting a simulated row). This ensures you can play around with simulations and rewinds without corrupting the live-running simulation.
 
 ---
 
