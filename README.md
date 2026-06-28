@@ -6,9 +6,7 @@ Hey there! This is the repository for the **CodeChef Contest Control Center**, a
 
 ## 🔗 Quick Links
 
-* **Live Demo**: [Launch Live Deployment](https://your-deployment-link-placeholder.com)
-* **Demo Walkthrough**: *(Place screenshot/walkthrough video here)*
-
+* **Control Center**: https://controlcc.vercel.app/
 ---
 
 ## 📸 Screenshots
@@ -128,19 +126,3 @@ graph LR;
 3. **Plagiarism Matches**: Two submissions are flagged if they share the exact same timestamp, problem code, programming language, execution runtime, and verdict, but belong to different users.
 
 ---
-
-## 🚀 Setting Up the Project
-
-### Installation
-Make sure you have Node.js installed, then run:
-```bash
-npm install --legacy-peer-deps
-```
-*(We use `--legacy-peer-deps` to bypass peer warnings between React 19 types and Recharts).*
-
-### Production Build
-To build and run the optimized production code:
-```bash
-npm run build
-npm run start
-```
