@@ -17,7 +17,8 @@ import {
   Line,
   Legend
 } from 'recharts';
-import { BarChart3, PieChart as PieIcon, LineChart as LineIcon, Terminal } from 'lucide-react';
+import { BarChart3, PieChart as PieIcon, LineChart as LineIcon, Terminal, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import BorderGlow from './BorderGlow';
 
 export default function AnalyticsPanel() {
@@ -95,6 +96,121 @@ export default function AnalyticsPanel() {
     color: langColors[lang] || 'var(--text-muted)'
   })).sort((a, b) => b.value - a.value); // Sort descending to trigger live reordering animations!
 
+  const [analysisDetails, setAnalysisDetails] = React.useState<{
+    category: string;
+    name: string;
+    stats: { label: string; value: string | number }[];
+    recentList: Submission[];
+  } | null>(null);
+
+  const handleLanguageClick = (lang: string) => {
+    const langSubs = displaySubmissions.filter(s => s.language === lang);
+    const total = langSubs.length;
+    const ac = langSubs.filter(s => s.verdict === 'Accepted').length;
+    const rate = total > 0 ? ((ac / total) * 100).toFixed(1) : '0';
+    const acRuntimes = langSubs.filter(s => s.verdict === 'Accepted').map(s => s.executionTime);
+    const avgRuntime = acRuntimes.length > 0 
+      ? (acRuntimes.reduce((a, b) => a + b, 0) / acRuntimes.length).toFixed(3) 
+      : '0';
+
+    setAnalysisDetails({
+      category: 'Programming Language',
+      name: lang,
+      stats: [
+        { label: 'Total Submissions', value: total },
+        { label: 'Solve Success Rate', value: `${rate}%` },
+        { label: 'Average Accepted Speed', value: `${avgRuntime}s` },
+        { label: 'Total Solves', value: `${ac} AC` }
+      ],
+      recentList: langSubs.slice(0, 5)
+    });
+  };
+
+  const handleVerdictClick = (data: any) => {
+    if (!data || !data.name) return;
+    
+    let fullVerdict = data.name;
+    if (fullVerdict === 'TLE') fullVerdict = 'Time Limit Exceeded';
+    if (fullVerdict === 'RTE') fullVerdict = 'Runtime Error';
+
+    const matchSubs = displaySubmissions.filter(s => s.verdict === fullVerdict);
+    const total = matchSubs.length;
+    const pct = displaySubmissions.length > 0 
+      ? ((total / displaySubmissions.length) * 100).toFixed(1) 
+      : '0';
+
+    const probCounts: { [code: string]: number } = {};
+    matchSubs.forEach(s => {
+      probCounts[s.problemCode] = (probCounts[s.problemCode] || 0) + 1;
+    });
+    const topProb = Object.keys(probCounts).reduce((a, b) => probCounts[a] > probCounts[b] ? a : b, 'None');
+    const topCount = probCounts[topProb] || 0;
+
+    setAnalysisDetails({
+      category: 'Submission Verdict',
+      name: fullVerdict,
+      stats: [
+        { label: 'Total Occurrences', value: total },
+        { label: 'Percentage of Total', value: `${pct}%` },
+        { label: 'Highest Frequency', value: topCount > 0 ? `Problem ${topProb} (${topCount} times)` : 'None' },
+        { label: 'Contest Impact', value: fullVerdict === 'Accepted' ? 'Positive (Adds points)' : 'Negative (Adds 20m penalty)' }
+      ],
+      recentList: matchSubs.slice(0, 5)
+    });
+  };
+
+  const handleProblemClick = (code: string) => {
+    const probSubs = displaySubmissions.filter(s => s.problemCode === code && !['Pending', 'Running'].includes(s.verdict));
+    const total = probSubs.length;
+    const solved = displaySubmissions.filter(s => s.problemCode === code && s.verdict === 'Accepted').length;
+    const rate = total > 0 ? ((solved / total) * 100).toFixed(1) : '0';
+    
+    const acSubs = displaySubmissions.filter(s => s.problemCode === code && s.verdict === 'Accepted');
+    const firstSolve = acSubs.length > 0 
+      ? acSubs.reduce((min, s) => s.timestamp < min.timestamp ? s : min, acSubs[0]) 
+      : null;
+
+    const langCounts: { [lang: string]: number } = {};
+    probSubs.forEach(s => {
+      langCounts[s.language] = (langCounts[s.language] || 0) + 1;
+    });
+    const topLang = Object.keys(langCounts).reduce((a, b) => langCounts[a] > langCounts[b] ? a : b, 'None');
+
+    setAnalysisDetails({
+      category: 'Contest Problem',
+      name: `Problem ${code}`,
+      stats: [
+        { label: 'Total Submissions', value: total },
+        { label: 'Solve Success Rate', value: `${rate}%` },
+        { label: 'First Blood Solve', value: firstSolve ? `${firstSolve.participantName} (${firstSolve.timestamp}m)` : 'Unsolved' },
+        { label: 'Preferred Language', value: topLang !== 'None' ? `${topLang} (${langCounts[topLang]} times)` : 'None' }
+      ],
+      recentList: displaySubmissions.filter(s => s.problemCode === code).slice(0, 5)
+    });
+  };
+
+  const handleTimelineClick = (timeStr: string) => {
+    const minVal = parseInt(timeStr);
+    if (isNaN(minVal)) return;
+
+    const timeSubs = displaySubmissions.filter(s => s.timestamp >= minVal && s.timestamp < minVal + 10);
+    const total = timeSubs.length;
+    const ac = timeSubs.filter(s => s.verdict === 'Accepted').length;
+    const uniqueParticipants = new Set(timeSubs.map(s => s.participantName)).size;
+
+    setAnalysisDetails({
+      category: 'Timeline Window',
+      name: `Minute ${minVal} - ${minVal + 9}`,
+      stats: [
+        { label: 'Submissions Submitted', value: total },
+        { label: 'Successful Solves (AC)', value: ac },
+        { label: 'Failed Submissions', value: total - ac },
+        { label: 'Active Teams in Window', value: uniqueParticipants }
+      ],
+      recentList: timeSubs.slice(0, 5)
+    });
+  };
+
   return (
     <div className="col-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', width: '100%', marginTop: '0.5rem' }}>
       
@@ -121,6 +237,8 @@ export default function AnalyticsPanel() {
                   outerRadius={80}
                   paddingAngle={5}
                   dataKey="value"
+                  onClick={(data) => handleVerdictClick(data)}
+                  style={{ cursor: 'pointer', outline: 'none' }}
                 >
                   {verdictCounts.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -163,6 +281,12 @@ export default function AnalyticsPanel() {
             <BarChart
               data={problemStats}
               margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
+              onClick={(state) => {
+                if (state && state.activeLabel) {
+                  handleProblemClick(String(state.activeLabel));
+                }
+              }}
+              style={{ cursor: 'pointer' }}
             >
               <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={10} tickLine={false} />
               <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} />
@@ -202,6 +326,12 @@ export default function AnalyticsPanel() {
             <LineChart
               data={timelineData}
               margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
+              onClick={(state) => {
+                if (state && state.activeLabel) {
+                  handleTimelineClick(String(state.activeLabel));
+                }
+              }}
+              style={{ cursor: 'pointer' }}
             >
               <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={10} tickLine={false} />
               <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} />
@@ -241,6 +371,12 @@ export default function AnalyticsPanel() {
               layout="vertical"
               data={languageData}
               margin={{ top: 10, right: 20, left: -25, bottom: 0 }}
+              onClick={(state) => {
+                if (state && state.activeLabel) {
+                  handleLanguageClick(String(state.activeLabel));
+                }
+              }}
+              style={{ cursor: 'pointer' }}
             >
               <XAxis type="number" stroke="var(--text-muted)" fontSize={10} tickLine={false} />
               <YAxis dataKey="name" type="category" stroke="var(--text-primary)" fontSize={10} tickLine={false} />
@@ -270,6 +406,161 @@ export default function AnalyticsPanel() {
         </div>
       </BorderGlow>
 
+      {/* Detailed Inspection Modal Overlay */}
+      <AnimatePresence>
+        {analysisDetails && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(8, 10, 15, 0.85)',
+            backdropFilter: 'blur(12px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem'
+          }}>
+            {/* Overlay closer */}
+            <div style={{ position: 'absolute', inset: 0 }} onClick={() => setAnalysisDetails(null)} />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              style={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: '520px',
+                background: 'var(--card-bg)',
+                border: '1px solid var(--card-border)',
+                borderRadius: '16px',
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                overflow: 'hidden',
+                zIndex: 10000
+              }}
+            >
+              {/* Edge glow indicator */}
+              <div style={{
+                height: '4px',
+                width: '100%',
+                background: 'linear-gradient(90deg, var(--accent-cyan), var(--accent-purple))'
+              }} />
+
+              {/* Close button */}
+              <button 
+                onClick={() => setAnalysisDetails(null)}
+                style={{
+                  position: 'absolute',
+                  top: '1rem',
+                  right: '1rem',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+              >
+                <X size={16} />
+              </button>
+
+              {/* Card Content Body */}
+              <div style={{ padding: '2rem 1.75rem' }}>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <span className="mono-font" style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {analysisDetails.category} Analysis
+                  </span>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0 0 0', color: 'var(--text-primary)' }}>
+                    {analysisDetails.name}
+                  </h3>
+                </div>
+
+                {/* KPI Stats Grid */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  marginBottom: '1.75rem'
+                }}>
+                  {analysisDetails.stats.map((stat, index) => (
+                    <div 
+                      key={index}
+                      style={{
+                        background: 'rgba(0,0,0,0.15)',
+                        border: '1px solid var(--card-border)',
+                        borderRadius: '8px',
+                        padding: '0.75rem 1rem'
+                      }}
+                    >
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: '0.25rem' }}>
+                        {stat.label}
+                      </div>
+                      <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {stat.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Recent Submissions List inside this category */}
+                <div>
+                  <h4 style={{ fontSize: '0.8rem', fontWeight: 700, margin: '0 0 0.75rem 0', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Recent Submissions
+                  </h4>
+                  {analysisDetails.recentList.length === 0 ? (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>
+                      No submissions to show.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      {analysisDetails.recentList.map((sub) => (
+                        <div 
+                          key={sub.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0.5rem 0.75rem',
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            border: '1px solid var(--card-border)',
+                            borderRadius: '6px',
+                            fontSize: '0.75rem'
+                          }}
+                        >
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <span className="mono-font" style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>
+                              #{sub.id.substring(4, 9) || sub.id}
+                            </span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{sub.participantName}</strong>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                            <span className="mono-font" style={{ color: 'var(--accent-cyan)' }}>{sub.problemCode}</span>
+                            <span className="mono-font" style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>{sub.language}</span>
+                            <span style={{ 
+                              color: sub.verdict === 'Accepted' ? 'var(--accent-emerald)' : 'var(--accent-red)',
+                              fontWeight: 700,
+                              fontSize: '0.7rem'
+                            }}>
+                              {sub.verdict === 'Accepted' ? 'AC' : sub.verdict === 'Time Limit Exceeded' ? 'TLE' : 'WA'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
