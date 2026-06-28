@@ -1,0 +1,350 @@
+/* CSS Variables for Algorithmic Command Deck */
+:root {
+  /* Default Dark Mode values */
+  --background: #080a0f;
+  --card-bg: #10141e;
+  --card-border: #1e2637;
+  --card-hover-border: #2e3b52;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --accent-emerald: #10b981;
+  --accent-red: #ef4444;
+  --accent-amber: #f59e0b;
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+  --accent-cyan: #06b6d4;
+  
+  --glow-emerald: rgba(16, 185, 129, 0.12);
+  --glow-red: rgba(239, 68, 68, 0.12);
+  --glow-amber: rgba(245, 158, 11, 0.12);
+  --glow-blue: rgba(59, 130, 246, 0.12);
+  
+  --frost-bg: rgba(26, 36, 54, 0.45);
+  --frost-border: rgba(59, 130, 246, 0.3);
+  
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.6);
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Light Mode Overrides */
+html.light {
+  --background: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-hover-border: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --accent-emerald: #059669;
+  --accent-red: #dc2626;
+  --accent-amber: #d97706;
+  --accent-blue: #2563eb;
+  --accent-purple: #7c3aed;
+  --accent-cyan: #0891b2;
+  
+  --glow-emerald: rgba(5, 150, 105, 0.08);
+  --glow-red: rgba(220, 38, 38, 0.08);
+  --glow-amber: rgba(217, 119, 6, 0.08);
+  --glow-blue: rgba(37, 99, 235, 0.08);
+  
+  --frost-bg: rgba(241, 245, 249, 0.65);
+  --frost-border: rgba(37, 99, 235, 0.25);
+  
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Base Resets */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--card-hover-border);
+}
+
+/* Custom CSS Helpers & Utility classes */
+.mono-font {
+  font-family: var(--font-mono);
+}
+
+/* Common Layout Components */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  border-color: var(--card-hover-border);
+  box-shadow: var(--shadow-md);
+}
+
+/* Interactive elements styling */
+button, input, select {
+  font-family: inherit;
+}
+
+select option {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
+.btn {
+  background: var(--card-border);
+  color: var(--text-primary);
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.btn:hover {
+  background: var(--card-hover-border);
+}
+
+.btn-primary {
+  background: var(--accent-blue);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 10px var(--glow-blue);
+}
+
+.btn-danger {
+  background: var(--accent-red);
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 10px var(--glow-red);
+}
+
+.input-field {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+  width: 100%;
+}
+
+html.light .input-field {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.input-field:focus {
+  border-color: var(--accent-blue);
+}
+
+/* Custom badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-ac {
+  background: var(--glow-emerald);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-wa {
+  background: var(--glow-red);
+  color: var(--accent-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-pending {
+  background: var(--glow-amber);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-blue {
+  background: var(--glow-blue);
+  color: var(--accent-blue);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Table styling for command decks */
+.data-table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.data-table th {
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--card-border);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.data-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--card-border);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.data-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+html.light .data-table tr:hover td {
+  background: rgba(0, 0, 0, 0.01);
+}
+
+/* Frost Overlay Animation */
+.frost-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--frost-bg);
+  backdrop-filter: blur(8px);
+  border: 2px solid var(--frost-border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  color: var(--accent-blue);
+  font-family: var(--font-mono);
+  animation: frost-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes frost-fade-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Grid Layout definitions for dashboard items */
+.col-12 { grid-column: span 12; }
+.col-8 { grid-column: span 8; }
+.col-6 { grid-column: span 6; }
+.col-4 { grid-column: span 4; }
+.col-3 { grid-column: span 3; }
+
+@media (max-width: 1024px) {
+  .col-8, .col-4, .col-6, .col-3 {
+    grid-column: span 12;
+  }
+}
+
+/* Dial and ticking animations */
+@keyframes blink {
+  50% { opacity: 0.4; }
+}
+
+.blink-animation {
+  animation: blink 1s step-end infinite;
+}
+
+/* Drag grip styling for dashboard cards */
+.drag-handle-grip {
+  opacity: 0;
+}
+li:hover .drag-handle-grip {
+  opacity: 0.8 !important;
+}
+.drag-handle-grip:hover {
+  opacity: 1 !important;
+  color: var(--accent-blue) !important;
+  background: var(--card-hover-border) !important;
+}
+
+/* Hide Next.js dev overlay/portal issues badge */
+nextjs-portal {
+  display: none !important;
+}
