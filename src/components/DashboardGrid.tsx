@@ -11,6 +11,7 @@ import Submissions from './Submissions';
 import AnalyticsPanel from './AnalyticsPanel';
 import SecurityPanel from './SecurityPanel';
 import AdminAuthModal from './AdminAuthModal';
+import AccountModal from './AccountModal';
 import { useContestStore } from '../store/useContestStore';
 import { Reorder, useDragControls, AnimatePresence, motion } from 'framer-motion';
 import { GripVertical, Play, Pause, RefreshCw, AlertTriangle, Sparkles } from 'lucide-react';
@@ -89,7 +90,8 @@ export default function DashboardGrid() {
     setRewindMinute, 
     latestFirstBlood, 
     clearLatestFirstBlood,
-    totalContestMinutes
+    totalContestMinutes,
+    currentUser
   } = useContestStore();
 
   const [particles, setParticles] = useState<ConfettiParticle[]>([]);
@@ -181,6 +183,11 @@ export default function DashboardGrid() {
     }
     return () => clearInterval(timer);
   }, [isPlayingRewind, rewindMinute, maxReplayMinute, setRewindMinute]);
+
+  // Gate dashboard rendering if the user is not authenticated/logged-in
+  if (!currentUser) {
+    return <AccountModal />;
+  }
 
   const handlePlayPause = () => {
     if (isPlayingRewind) {

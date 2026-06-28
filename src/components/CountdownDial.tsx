@@ -19,7 +19,9 @@ export default function CountdownDial() {
     setContestTime,
     isAdminAuthenticated,
     setAdminAuthModalOpen,
-    setPendingAdminAction
+    setPendingAdminAction,
+    currentUser,
+    logoutAccount
   } = useContestStore();
 
   const [isCoverOpen, setIsCoverOpen] = useState(false);
@@ -278,6 +280,36 @@ export default function CountdownDial() {
 
       {/* Signature Element: Mechanical Freeze Standings Switch */}
       <div className="control-center-switches">
+        {/* User Profile & Logout */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          padding: '0.35rem 0.65rem',
+          background: 'rgba(0,0,0,0.15)',
+          border: '1px solid var(--card-border)',
+          borderRadius: '8px',
+          fontSize: '0.75rem',
+          color: 'var(--text-secondary)'
+        }}>
+          <span style={{ fontWeight: 600 }}>👤 {currentUser}</span>
+          <span style={{ color: 'var(--card-border)' }}>|</span>
+          <button 
+            onClick={logoutAccount}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--accent-red)',
+              cursor: 'pointer',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              padding: 0
+            }}
+          >
+            Logout
+          </button>
+        </div>
+
         {/* Toggle Theme */}
         <button className="btn" onClick={toggleTheme} style={{ padding: '0.5rem', borderRadius: '50%' }}>
           {isThemeLight ? <Moon size={16} /> : <Sun size={16} />}

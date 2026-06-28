@@ -11,7 +11,8 @@ export default function AdminAuthModal() {
     setAdminAuthModalOpen,
     setAdminAuthenticated,
     pendingAdminAction,
-    setPendingAdminAction
+    setPendingAdminAction,
+    registeredUser
   } = useContestStore();
 
   const [passcode, setPasscode] = useState('');
@@ -37,7 +38,9 @@ export default function AdminAuthModal() {
     e.preventDefault();
     setError(false);
 
-    if (passcode === 'vitadmin123') {
+    const correctPassword = registeredUser?.passwordHash || 'vitadmin123';
+
+    if (passcode === correctPassword) {
       setIsSuccess(true);
       setTimeout(() => {
         setAdminAuthenticated(true);

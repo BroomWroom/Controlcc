@@ -49,6 +49,14 @@ interface ContestState {
   adminAuthModalOpen: boolean;
   pendingAdminAction: (() => void) | null;
 
+  // Account System States
+  registeredUser: { username: string; passwordHash: string } | null;
+  currentUser: string | null;
+
+  registerAccount: (username: string, password: string) => void;
+  loginAccount: (username: string, password: string) => boolean;
+  logoutAccount: () => void;
+  
   addSubmission: (submission: Omit<Submission, 'id'> & { id?: string }) => string;
   resolveSubmission: (id: string, verdict: Submission['verdict'], executionTime: number) => void;
   rejudgeSubmission: (id: string, newVerdict: Submission['verdict']) => void;
@@ -177,6 +185,22 @@ const validateSavedState = (parsed: any): boolean => {
 };
 
 const getInitialState = () => {
+  let registeredUser = null;
+  let currentUser = null;
+
+  if (typeof window !== 'undefined') {
+    const savedAccount = localStorage.getItem('contest_control_center_account');
+    if (savedAccount) {
+      try {
+        const parsed = JSON.parse(savedAccount);
+        registeredUser = parsed.registeredUser || null;
+        currentUser = parsed.currentUser || null;
+      } catch (e) {
+        console.error('Failed to parse account state:', e);
+      }
+    }
+  }
+
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('contest_control_center_state');
     if (saved) {
@@ -205,6 +229,9 @@ const getInitialState = () => {
             isAdminAuthenticated: false,
             adminAuthModalOpen: false,
             pendingAdminAction: null,
+            
+            registeredUser,
+            currentUser
           };
         } else {
           console.warn('Saved state failed validation. Discarding corrupted cache.');
@@ -234,6 +261,9 @@ const getInitialState = () => {
     isAdminAuthenticated: false,
     adminAuthModalOpen: false,
     pendingAdminAction: null,
+
+    registeredUser,
+    currentUser
   };
 };
 
@@ -799,5 +829,51 @@ export const useContestStore = create<ContestState>((set) => {
     setAdminAuthenticated: (auth) => set({ isAdminAuthenticated: auth }),
     setAdminAuthModalOpen: (open) => set({ adminAuthModalOpen: open }),
     setPendingAdminAction: (action) => set(() => ({ pendingAdminAction: action })),
+
+    registerAccount: (username, password) => {
+      set((state) => {
+        const newUser = { username, passwordHash: password };
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('contest_control_center_account', JSON.stringify({
+            registeredUser: newUser,
+            currentUser: username
+          }));
+        }
+        return {
+          registeredUser: newUser,
+          currentUser: username
+        };
+      });
+    },
+
+    loginAccount: (username, password) => {
+      let success = false;
+      set((state) => {
+        if (state.registeredUser && state.registeredUser.username === username && state.registeredUser.passwordHash === password) {
+          success = true;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('contest_control_center_account', JSON.stringify({
+              registeredUser: state.registeredUser,
+              currentUser: username
+            }));
+          }
+          return { currentUser: username };
+        }
+        return {};
+      });
+      return success;
+    },
+
+    logoutAccount: () => {
+      set((state) => {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('contest_control_center_account', JSON.stringify({
+            registeredUser: state.registeredUser,
+            currentUser: null
+          }));
+        }
+        return { currentUser: null, isAdminAuthenticated: false };
+      });
+    },
   };
 });

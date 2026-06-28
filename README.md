@@ -42,6 +42,30 @@ https://github.com/user-attachments/assets/42d58d1d-7cae-4a4e-bcf9-99ff3d5a574d
 ### 7. Live Submission Stream
 <img width="1918" height="742" alt="Screenshot 2026-06-28 164132" src="https://github.com/user-attachments/assets/83c396d0-500d-4b78-9f65-734d4714b7eb" />
 
+### 8. Custom Admin Access Gate Modal (Passcode: `vitadmin123`)
+*Sleek, glassmorphic authentication popup replacing browser-native dialogs for security-critical actions (e.g. rejudging, resolving plagiarism flags). Includes spring-animated entrance, error-shake feedback, and automatic success execution.*
+![Admin Auth Modal](screenshots/admin_auth_modal.png)
+
+### 9. Interactive Analytics & Graph Detailed Drilldown
+*Interactive data drilling on charts. Clicking any data point, bar, or pie segment (Verdicts, Problems, Timelines, or Languages) triggers a beautiful inspection card detailing success ratios, KPI cards, and recent matching submissions.*
+![Analytics Drilldown Modal](screenshots/analytics_drilldown.png)
+
+
+---
+
+## 🌟 Featured Operational Systems
+
+### 1. Interactive "What-If" Rank Predictor (Leaderboard Sandbox)
+Allow organizers and spectators to preview prospective ranks and penalty scores before a problem is officially solved:
+* **Simulated recalculation**: Selecting a team and an unsolved problem in the Sandbox bar dynamically calculates and injects a virtual "Accepted" solution. Ranks are recomputed in-memory, instantly updating the leaderboard layout.
+* **Visual highlights**: The simulated participant's row is highlighted in a glowing cyan/emerald frame with a `🔬 SIMULATED` badge. An overlay alert bar displays active simulation details with a reset button.
+* **Side-Effect Free**: Computes sandbox standings downstream of the store, ensuring live data streams and statistics are never corrupted.
+
+### 2. Persistent User Account Registration & Unified Passcode Lock
+* **Onboarding Gate**: Blocks the dashboard on first launch with a registration card to configure custom administrative credentials (username and password).
+* **Unified Passcode**: The registered password dynamically overrides the default `vitadmin123` fallback, acting as the security key for all admin operations (rejudging, manual disqualification, clearing anomalies, and resetting data).
+* **Decoupled Persistence**: Stored under a separate `contest_control_center_account` local storage namespace, preserving user profile details even if the main contest data cache is cleared or reset.
+* **Visual Transitions**: Logging in or registering re-triggers the `CubeLoader` animation, creating a smooth page entry transition before mounting the dashboard layout.
 
 ---
 
